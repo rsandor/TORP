@@ -68,17 +68,22 @@ window.VGP = (function() {
   /*
    * Platform Class
    */
-  function Platform(x, y, w, h, color) {
+  function Platform(x, y, w, h) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.color = color;
   }
   
   Platform.prototype.draw = function(ctx, canvas) {
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.w, this.h);
+    var sx;
+    for (var x = 0; x < this.w; x++) {
+      if (x == 0)               sx = 0;
+      else if (x == this.w - 1) sx = 3;
+      else if (x % 2 == 1)      sx = 1;
+      else                      sx = 2;
+      ctx.drawImage(blockSprites, sx*32, 0, 32, 32, this.x + x*32, this.y, 32, 32);
+    }
   }
   
   
@@ -111,15 +116,16 @@ window.VGP = (function() {
    */
   function init() {
     // Setup the gury instance
-    var g = $g().size(WIDTH, HEIGHT).background('black').place('#game_container');
+    var g = $g().size(WIDTH, HEIGHT).background('black url(background.png) top left').place('#game_container');
+
 
     // Add Objects
     g.add('dude', dude);
-    g.add('platform', new Platform(320, 320, 320, 128, 'blue'));
-    g.add('platform', new Platform(64, 160, 160, 32, 'darkblue'));
-    g.add('platform', new Platform(500, 80, 80, 32, 'darkgreen'));
-    g.add('platform', new Platform(0, HEIGHT-32, WIDTH, 32, 'darkred'));
-
+    g.add('platform', new Platform(320, 320, 10, 1));
+    g.add('platform', new Platform(64, 160, 5, 1));
+    g.add('platform', new Platform(500, 80, 3, 1));
+    g.add('platform', new Platform(0, HEIGHT-32, WIDTH/32, 1));
+    
     //g.add(function(ctx) {  ctx.drawImage(sprites, 0, 0); });
 
     // Animate the game at 30 FPS
@@ -168,9 +174,9 @@ window.VGP = (function() {
         var onSomething = false;
 
         g.each('platform', function(object) {
-          if (dude.x > object.x - 32 && dude.x < object.x + object.w) {
+          if (dude.x > object.x - 32 && dude.x < object.x + object.w*32) {
 
-            if (dude.y + 32 >= object.y && dude.y + 32 <= object.y + object.h) {
+            if (dude.y + 32 >= object.y && dude.y + 32 <= object.y + object.h*32) {
               if (dude.dy >= 0) {
                 dude.dy2 = 0;
                 dude.dy = 0;
@@ -178,9 +184,9 @@ window.VGP = (function() {
                 onSomething = true;
               }
             }
-            else if (dude.y >= object.y && dude.y <= object.y + object.h) {
+            else if (dude.y >= object.y && dude.y <= object.y + object.h*32) {
               if (dude.dy < 0) {
-                dude.y = object.y + object.h + 1;
+                dude.y = object.y + object.h*32 + 1;
                 dude.dy = 0;
                 dude.dy2 = 0;
               }
@@ -209,9 +215,13 @@ window.VGP = (function() {
   /*
    * Load the sprites and go!
    */
-  var sprites = new Image();
-  sprites.onload = init;
-  sprites.src = 'SpriteMapBlobGuy.png';
+   var sprites = new Image(),
+     blockSprites = new Image();
+   sprites.onload = function() {
+     blockSprites.src = "BlockTime.png";
+   }
+   blockSprites.onload = init;
+   sprites.src = 'SpriteMapBlobGuy.png';
   
   
   // Public Interface
