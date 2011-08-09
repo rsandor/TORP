@@ -143,7 +143,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       }
       
       if (!Player.grounded && Player.dy < 0 && !Keyboard.down(Key.Z)) {
-        Player.dy += (MAX_Y_JUMP / 8);
+        Player.dy += MAX_Y_ACC * 1.5;
       }
       
       jumpFlag = !Keyboard.down(Key.Z);
