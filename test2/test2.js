@@ -7,9 +7,6 @@ var Test2 = (function(WIDTH, HEIGHT) {
   // Sprite Maps
   var sprites, blockSprites;
   
-  
-  
-  
   // Create the Gury instance
   var g = $g().size(WIDTH, HEIGHT).background('black url(background.png) top left');
   
@@ -21,6 +18,9 @@ var Test2 = (function(WIDTH, HEIGHT) {
     x: 0, y: 0,
     dx: 0, dy: 0,
     dx2: 0, dy2: 0,
+    
+    // Various state variables
+    grounded: false,
     
     // Dimension
     w: 32, h: 32,
@@ -61,10 +61,18 @@ var Test2 = (function(WIDTH, HEIGHT) {
    * Handles the game's physics calculations.
    */
   var Physics = (function() {
-    // Velocity & Accelleration Constants
-    var MAX_X_ACC = 0.77,
+    var // Horizontal Movement constants
+        MAX_X_ACC = 0.77,
         MAX_X_DEC = 1.5 * MAX_X_ACC,
-        MAX_X_VEL = 8;
+        MAX_X_VEL = 8,
+        // Vertical movement constants
+        MAX_Y_ACC = 1,
+        MAX_Y_VEL = 20,
+        MAX_Y_JUMP = 17;
+    
+    // Used to prevent auto-jumping upon landing
+    var jumpFlag = true;
+    
     
     function collision(a, b) {
     }
@@ -105,13 +113,52 @@ var Test2 = (function(WIDTH, HEIGHT) {
     }
     
     /**
+     * Handle vertical movement for the player along with user input.
+     */
+    function verticalPlayerMovement() {
+      // Calculate gravity and integrate vertical velocity
+      Player.dy2 = MAX_Y_ACC;
+      Player.dy += Player.dy2;
+      
+      if (Player.dy > MAX_Y_VEL) {
+        Player.dy = MAX_Y_VEL;
+      }
+      else if (Player.dy < -MAX_Y_VEL) {
+        Player.dy = -MAX_Y_VEL; 
+      }
+      
+      // Check for collisions
+      if (Player.y + Player.dy > 420) {
+        Player.dy = 0;
+        Player.y = 420;
+        Player.grounded = true;
+      }
+      else {
+        Player.grounded = false;
+      }
+      
+      // Check for jump input
+      if (Player.grounded && Keyboard.down(Key.Z) && jumpFlag) {
+        Player.dy = -MAX_Y_JUMP;
+      }
+      
+      if (!Player.grounded && Player.dy < 0 && !Keyboard.down(Key.Z)) {
+        Player.dy += (MAX_Y_JUMP / 8);
+      }
+      
+      jumpFlag = !Keyboard.down(Key.Z);
+    }
+    
+    /**
      * Main Physics Update Loop.
      */
     function update() {
       horizontalPlayerMovement();
+      verticalPlayerMovement();
       
-        
+      // Update Player's Position
       Player.x += Player.dx;  
+      Player.y += Player.dy;
     }
     
     // Public interface
