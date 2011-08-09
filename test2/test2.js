@@ -80,7 +80,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
     /**
      * Handle user input and horizontal character movement.
      */
-    function horizontalPlayerMovement() {
+    function playerX() {
       // Compute accelleration
       if (Keyboard.down(Key.LEFT)) {
         Player.dx2 = -MAX_X_ACC;
@@ -99,6 +99,11 @@ var Test2 = (function(WIDTH, HEIGHT) {
           Player.dx2 = MAX_X_DEC;
         else
           Player.dx2 = 0;
+          
+        // Friction due to air should be much less
+        if (!Player.grounded) {
+          Player.dx2 /= 8;
+        }
       }
       
       // Compute & cap velocity
@@ -115,7 +120,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
     /**
      * Handle vertical movement for the player along with user input.
      */
-    function verticalPlayerMovement() {
+    function playerY() {
       // Calculate gravity and integrate vertical velocity
       Player.dy2 = MAX_Y_ACC;
       Player.dy += Player.dy2;
@@ -127,7 +132,42 @@ var Test2 = (function(WIDTH, HEIGHT) {
         Player.dy = -MAX_Y_VEL; 
       }
       
+      // Check for jump input
+      if (Player.grounded && Keyboard.down(Key.Z) && jumpFlag) {
+        Player.dy = -MAX_Y_JUMP;
+      }
+      else if (!Player.grounded && Player.dy < 0 && !Keyboard.down(Key.Z)) {
+        Player.dy += MAX_Y_ACC * 1.5;
+      }
+      jumpFlag = !Keyboard.down(Key.Z);
+    }
+    
+    /**
+     * Main Physics Update Loop.
+     */
+    function update() {
+      playerX();
+      playerY();
+      
       // Check for collisions
+      
+      g.each('platform', function(platform) {
+        var // Player bounding points
+            nx = Player.x + Player.dx,
+            ny = Player.y + Player.dy,
+            nz = nx + Player.w,
+            nt = ny + Player.h,
+            // Player 
+            px = platform.x,
+            py = platform.y,
+            pz = platform.x + platform.w,
+            pt = platform.y + platform.h;
+        
+        
+      });
+      
+      
+      // "Ground" (lowest possible point)
       if (Player.y + Player.dy > 420) {
         Player.dy = 0;
         Player.y = 420;
@@ -136,25 +176,6 @@ var Test2 = (function(WIDTH, HEIGHT) {
       else {
         Player.grounded = false;
       }
-      
-      // Check for jump input
-      if (Player.grounded && Keyboard.down(Key.Z) && jumpFlag) {
-        Player.dy = -MAX_Y_JUMP;
-      }
-      
-      if (!Player.grounded && Player.dy < 0 && !Keyboard.down(Key.Z)) {
-        Player.dy += MAX_Y_ACC * 1.5;
-      }
-      
-      jumpFlag = !Keyboard.down(Key.Z);
-    }
-    
-    /**
-     * Main Physics Update Loop.
-     */
-    function update() {
-      horizontalPlayerMovement();
-      verticalPlayerMovement();
       
       // Update Player's Position
       Player.x += Player.dx;  
