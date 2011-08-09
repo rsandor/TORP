@@ -44,9 +44,16 @@ var Test2 = (function(WIDTH, HEIGHT) {
     this.y = y;
     this.w = w;
     this.h = h;
+    this.hit = false;
   }
   
   Platform.prototype.draw = function(ctx, canvas) {
+    if (this.hit) {
+      ctx.fillStyle = 'green';
+      ctx.fillRect(this.x, this.y, this.w, this.h);
+      return;
+    }
+    
     var sx;
     for (var x = 0; x < this.w/32; x++) {
       if (x == 0)               sx = 0;
@@ -68,13 +75,38 @@ var Test2 = (function(WIDTH, HEIGHT) {
         // Vertical movement constants
         MAX_Y_ACC = 1,
         MAX_Y_VEL = 20,
-        MAX_Y_JUMP = 17;
+        MAX_Y_JUMP = 17.8;
     
     // Used to prevent auto-jumping upon landing
     var jumpFlag = true;
     
     
+    /**
+     * Checks to see if a collision will occur.
+     *
+     * TODO Needs to work for two moving objects, yo.
+     *
+     * @param a Moving object.
+     * @param b Stationary object.
+     */
     function collision(a, b) {
+      var // Moving object's bounding points
+          nx = a.x + a.dx,
+          ny = a.y + a.dy,
+          nz = nx + a.w,
+          nt = ny + a.h,
+          // Stationary object's bounding points 
+          px = b.x,
+          py = b.y,
+          pz = b.x + b.w,
+          pt = b.y + b.h;
+      
+      var hitX = (nx >= px && nx <= pz) || (nz >= px && nz <= pz),
+          hitY = (ny >= py && ny <= pt) || (nt >= py && nt <= pt),
+          surroundX = (nx < px && nz > pz),
+          surroundY = (ny < py && nt > pt);
+      
+      return (hitX && hitY) || (hitX && surroundY) || (surroundX && hitY);
     }
     
     /**
@@ -149,25 +181,26 @@ var Test2 = (function(WIDTH, HEIGHT) {
       playerX();
       playerY();
       
-      // Check for collisions
+      // Assume the player is flailing trough the air
+      Player.grounded = false;
       
+      // Check for collisions
       g.each('platform', function(platform) {
-        var // Player bounding points
-            nx = Player.x + Player.dx,
-            ny = Player.y + Player.dy,
-            nz = nx + Player.w,
-            nt = ny + Player.h,
-            // Player 
-            px = platform.x,
-            py = platform.y,
-            pz = platform.x + platform.w,
-            pt = platform.y + platform.h;
+        var hit = collision(Player, platform);
+        platform.hit = hit;
         
+        if (!hit) return;
         
+        if (Player.y + Player.h <= platform.y) {
+          Player.dy = 0;
+          Player.y = platform.y - Player.h;
+          Player.grounded = true;
+        }
       });
       
       
       // "Ground" (lowest possible point)
+      /*
       if (Player.y + Player.dy > 420) {
         Player.dy = 0;
         Player.y = 420;
@@ -176,6 +209,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       else {
         Player.grounded = false;
       }
+      */
       
       // Update Player's Position
       Player.x += Player.dx;  
@@ -198,10 +232,10 @@ var Test2 = (function(WIDTH, HEIGHT) {
     g.add('player', Player);
     
     // Add some platforms
-    g.add('platform', new Platform(320, 320, 320, 32));
-    g.add('platform', new Platform(64, 160, 160, 32));
-    g.add('platform', new Platform(500, 80, 96, 32));
-    g.add('platform', new Platform(0, HEIGHT-32, WIDTH, 32));
+    g.add('platform', new Platform(320, 320, 320, 16));
+    g.add('platform', new Platform(64, 160, 160, 16));
+    g.add('platform', new Platform(500, 80, 96, 16));
+    g.add('platform', new Platform(0, HEIGHT-32, WIDTH, 16));
         
     // Physics Magic
     g.add('physics', Physics);
