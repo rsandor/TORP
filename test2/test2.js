@@ -4,7 +4,11 @@
  * By Ryan Sandor Richards and Thomas Alexander O'Neil
  */
 var Test2 = (function(WIDTH, HEIGHT) {
+  // Sprite Maps
   var sprites, blockSprites;
+  
+  
+  
   
   // Create the Gury instance
   var g = $g().size(WIDTH, HEIGHT).background('black url(background.png) top left');
@@ -23,7 +27,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
     
     // Rendering
     draw: function(ctx) {
-      ctx.fillStyle = 'green';
+      ctx.fillStyle = 'red';
       ctx.fillRect(this.x, this.y, this.w, this.h);
     }
   };
@@ -57,11 +61,57 @@ var Test2 = (function(WIDTH, HEIGHT) {
    * Handles the game's physics calculations.
    */
   var Physics = (function() {
+    // Velocity & Accelleration Constants
+    var MAX_X_ACC = 0.77,
+        MAX_X_DEC = 1.5 * MAX_X_ACC,
+        MAX_X_VEL = 8;
     
     function collision(a, b) {
     }
     
+    /**
+     * Handle user input and horizontal character movement.
+     */
+    function horizontalPlayerMovement() {
+      // Compute accelleration
+      if (Keyboard.down(Key.LEFT)) {
+        Player.dx2 = -MAX_X_ACC;
+      }
+      else if (Keyboard.down(Key.RIGHT)) {
+        Player.dx2 = MAX_X_ACC;
+      }
+      else {
+        if (Player.dx < MAX_X_DEC && Player.dx > -MAX_X_DEC) {
+          Player.dx2 = 0;
+          Player.dx = 0;
+        }
+        else if (Player.dx > 0)
+          Player.dx2 = -MAX_X_DEC;
+        else if (Player.dx < 0)
+          Player.dx2 = MAX_X_DEC;
+        else
+          Player.dx2 = 0;
+      }
+      
+      // Compute & cap velocity
+      Player.dx += Player.dx2;
+            
+      if (Player.dx > MAX_X_VEL) {
+        Player.dx = MAX_X_VEL;
+      }
+      else if (Player.dx < -MAX_X_VEL) {
+        Player.dx = -MAX_X_VEL
+      }
+    }
+    
+    /**
+     * Main Physics Update Loop.
+     */
     function update() {
+      horizontalPlayerMovement();
+      
+        
+      Player.x += Player.dx;  
     }
     
     // Public interface
