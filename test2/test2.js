@@ -62,13 +62,6 @@ var Test2 = (function(WIDTH, HEIGHT) {
         sx = Keyboard.down(Key.UP) ? 5 : 1;
       }
       
-      // 0 1 0 2
-      
-      
-      
-    
-      
-      
       ctx.drawImage(playerSprites, 16*sx, 16*this.direction, 16, 16, this.x-(this.w / 2), this.y, 16, 16);
       
       //ctx.fillStyle = 'red';
@@ -76,8 +69,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       
       // Increment the frame counter
       this.frame = (this.frame + 1) % this.maxFrame;
-    },
-    
+    } 
   };
   
   /**
@@ -207,7 +199,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
         Player.dx = MAX_X_VEL;
       }
       else if (Player.dx < -MAX_X_VEL) {
-        Player.dx = -MAX_X_VEL
+        Player.dx = -MAX_X_VEL;
       }
     }
     
