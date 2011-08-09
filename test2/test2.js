@@ -196,6 +196,19 @@ var Test2 = (function(WIDTH, HEIGHT) {
           Player.y = platform.y - Player.h;
           Player.grounded = true;
         }
+        else if (Player.y > platform.y + platform.h) {
+          Player.dy = 0;
+          Player.y = platform.y + platform.h;
+        }
+        else if (Player.x + Player.w <= platform.x) {
+          Player.dx = 0;
+          Player.x = platform.x - Player.w;
+        }
+        else if (Player.x >= platform.x + platform.w) {
+          Player.dx = 0;
+          Player.x = platform.x + platform.w;
+        }
+        
       });
       
       
