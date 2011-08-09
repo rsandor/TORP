@@ -21,6 +21,7 @@ var Test3 = (function(WIDTH, HEIGHT) {
     
     // Various state variables
     grounded: false,
+    facing: 1, // 1 for right, -1 for left
     
     // Dimension
     w: 32, h: 32,
@@ -84,9 +85,11 @@ var Test3 = (function(WIDTH, HEIGHT) {
       // Compute accelleration
       if (Keyboard.down(Key.LEFT)) {
         Player.dx2 = -MAX_X_ACC;
+        Player.facing = -1;
       }
       else if (Keyboard.down(Key.RIGHT)) {
         Player.dx2 = MAX_X_ACC;
+        Player.facing = 1;
       }
       else {
         if (Player.dx < MAX_X_DEC && Player.dx > -MAX_X_DEC) {
@@ -166,11 +169,43 @@ var Test3 = (function(WIDTH, HEIGHT) {
   })();
 
   var Camera = (function() {
-    var cx;
+    var MAX_X_ACC = 0.7,
+        MAX_X_DEC = 1.5,
+        MAX_X_VEL = 13.0;
+
+    var cx = 0,
+        dx = 0,
+        dx2 = 0;
 
     function up(ctx) {
+      var tx = Player.x - (WIDTH / 2) + (WIDTH / 5) * Player.facing;
+
+      dx2 = cx - tx >= 0 ? -MAX_X_ACC : MAX_X_ACC;
+
+      dx += dx2;
+
+      if (dx > MAX_X_VEL) {
+        dx = MAX_X_VEL;
+      } else if (dx < -MAX_X_VEL) {
+        dx = -MAX_X_VEL;
+      }
+
+      if (dx > 0 && Math.abs(cx - tx) < Math.abs(dx * 4)) {
+        dx2 = 0;
+        dx = Math.max(Player.dx * 1.15 , 2);
+      } else if (dx < 0 && Math.abs(cx - tx) < Math.abs(dx * 4)) {
+        dx2 = 0;
+        dx = Math.min(Player.dx * 1.15, -2);
+      }
+
+      if (Math.abs(cx - tx) < Math.abs(dx)) {
+        dx2 = 0;
+        dx = Player.dx;
+      }
+
+      cx += dx;
+
       ctx.save();
-      cx = Player.x - WIDTH / 2;
       ctx.translate(-cx, 0);
     }
 
