@@ -5,17 +5,19 @@
  */
 var Test2 = (function(WIDTH, HEIGHT) {
   // Sprite Maps
-  var sprites, blockSprites;
+  var blockSprites, playerSprites;
   
   // Create the Gury instance
   var g = $g().size(WIDTH, HEIGHT).background('black url(background.png) top left');
+  
+  //g.canvas.style.width = 2*WIDTH + "px";
   
   /**
    * The player model
    */
   var Player = {
     // Position
-    x: 0, y: 0,
+    x: 24, y: -20,
     dx: 0, dy: 0,
     dx2: 0, dy2: 0,
     
@@ -23,13 +25,59 @@ var Test2 = (function(WIDTH, HEIGHT) {
     grounded: false,
     
     // Dimension
-    w: 32, h: 32,
+    w: 8, h: 16,
+    
+    // Sprite animation
+    frame: 0,
+    direction: 0,
+    maxFrame: 16,
     
     // Rendering
     draw: function(ctx) {
-      ctx.fillStyle = 'red';
-      ctx.fillRect(this.x, this.y, this.w, this.h);
-    }
+      var sx = 0, sy = 0;
+      
+      // Determine direction
+      if (Keyboard.down(Key.LEFT))
+        this.direction = 1;
+      else if (Keyboard.down(Key.RIGHT))
+        this.direction = 0;
+      
+    
+      // Walking / Standing
+      if (this.grounded && this.dx != 0) {
+        if        (this.frame < 4)  sx = 0;
+        else if   (this.frame < 8)  sx = 1;
+        else if   (this.frame < 12) sx = 0;
+        else if   (this.frame < 16)  sx = 2;
+      }
+      else if (this.grounded && Keyboard.down(Key.UP)) {
+        sx = 3;
+      }
+      else if (this.grounded && Keyboard.down(Key.DOWN)) {
+        sx = 6;
+      }
+      
+      // Jumping 
+      if (!this.grounded) {
+        sx = Keyboard.down(Key.UP) ? 5 : 1;
+      }
+      
+      // 0 1 0 2
+      
+      
+      
+    
+      
+      
+      ctx.drawImage(playerSprites, 16*sx, 16*this.direction, 16, 16, this.x-(this.w / 2), this.y, 16, 16);
+      
+      //ctx.fillStyle = 'red';
+      //ctx.fillRect(this.x, this.y, this.w, this.h);
+      
+      // Increment the frame counter
+      this.frame = (this.frame + 1) % this.maxFrame;
+    },
+    
   };
   
   /**
@@ -55,27 +103,41 @@ var Test2 = (function(WIDTH, HEIGHT) {
     }
     
     var sx;
-    for (var x = 0; x < this.w/32; x++) {
-      if (x == 0)               sx = 0;
-      else if (x == this.w - 1) sx = 3;
-      else if (x % 2 == 1)      sx = 1;
-      else                      sx = 2;
-      ctx.drawImage(blockSprites, sx*32, 0, 32, 32, this.x + x*32, this.y, 32, 32);
+    for (var x = 0; x < this.w/16; x++) {
+      sx = 0;
+      ctx.drawImage(blockSprites, sx*16, 0, 16, 16, this.x + x*16, this.y, 16, 16);
     }
   };
+  
+  function Background(x, y, w, h, s) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.sprite = typeof s == "undefined" ? 32 : s;
+  }
+  
+  Background.prototype.draw = function(ctx, canvas) {
+    for (var x = 0; x < this.w; x += 16) {
+      for (var y = 0; y < this.h; y += 16) {
+        ctx.drawImage(blockSprites, this.sprite, 0, 16, 16, this.x + x, this.y + y, 16, 16);
+      }
+    }
+  };
+  
   
   /**
    * Handles the game's physics calculations.
    */
   var Physics = (function() {
     var // Horizontal Movement constants
-        MAX_X_ACC = 0.77,
+        MAX_X_ACC = 0.37,
         MAX_X_DEC = 1.5 * MAX_X_ACC,
-        MAX_X_VEL = 8,
+        MAX_X_VEL = 4,
         // Vertical movement constants
-        MAX_Y_ACC = 1,
-        MAX_Y_VEL = 20,
-        MAX_Y_JUMP = 17.8;
+        MAX_Y_ACC = 0.5,
+        MAX_Y_VEL = 10,
+        MAX_Y_JUMP = 8.2;
     
     // Used to prevent auto-jumping upon landing
     var jumpFlag = true;
@@ -187,7 +249,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       // Check for collisions
       g.each('platform', function(platform) {
         var hit = collision(Player, platform);
-        platform.hit = hit;
+        //platform.hit = hit;
         
         if (!hit) return;
         
@@ -208,21 +270,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
           Player.dx = 0;
           Player.x = platform.x + platform.w;
         }
-        
       });
-      
-      
-      // "Ground" (lowest possible point)
-      /*
-      if (Player.y + Player.dy > 420) {
-        Player.dy = 0;
-        Player.y = 420;
-        Player.grounded = true;
-      }
-      else {
-        Player.grounded = false;
-      }
-      */
       
       // Update Player's Position
       Player.x += Player.dx;  
@@ -238,27 +286,43 @@ var Test2 = (function(WIDTH, HEIGHT) {
    * Initalizes and runs the game.
    */
   function init(maps) {
-    sprites = maps['SpriteMapBlobGuy.png'];
-    blockSprites = maps['BlockTime.png'];
+    playerSprites = maps['player.png'];
+    blockSprites = maps['blocks.png'];
+    
+    // Add some background pillars
+    g.add('background', new Background(286, 56, 32, 106));
+    g.add('background', new Background(176, 176, 128, 32));
+    g.add('background', new Background(80, 106, 64, 106));
     
     // Add the player
     g.add('player', Player);
     
-    // Add some platforms
-    g.add('platform', new Platform(320, 320, 320, 16));
-    g.add('platform', new Platform(64, 160, 160, 16));
-    g.add('platform', new Platform(500, 80, 96, 16));
-    g.add('platform', new Platform(0, HEIGHT-32, WIDTH, 16));
+    // Add some platforms and backgrounds
+    g.add('platform', new Platform(160, 160, 160, 16));
+    g.add('platform', new Platform(64, 90, 96, 16));
+    g.add('platform', new Platform(270, 40, 64, 16));
+    g.add('platform', new Platform(0, 240-32, 400, 16));
         
     // Physics Magic
     g.add('physics', Physics);
+    
+    // Holy Shit Scale that bitch!
+    g.addTransform({
+      up: function(ctx) {
+        ctx.save();
+        ctx.scale(3, 3);
+      },
+      down: function(ctx) {
+        ctx.restore();
+      }
+    });
     
     // Begin the game loop
     g.place('#game_container').play(32);
   }
   
   // Load spritemap and begin the game
-  Torp.loadImages(['SpriteMapBlobGuy.png', 'BlockTime.png'], init);
-})(800, 480);
+  Torp.loadImages(['player.png', 'blocks.png'], init);
+})(1200, 660);
 
 

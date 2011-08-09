@@ -14,8 +14,8 @@ var Keyboard = (function() {
   var map = {};
   
   // Setup Key Bindings
-  $(window).keydown(function(e) { map[e.keyCode] = true; });
-  $(window).keyup(function(e) { delete map[e.keyCode]; });
+  $(window).keydown(function(e) { map[e.keyCode] = true;  });
+  $(window).keyup(function(e) { delete map[e.keyCode];  });
   
   // Public Interface
   return {
