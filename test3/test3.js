@@ -274,8 +274,8 @@ var Test2 = (function(WIDTH, HEIGHT) {
   })();
 
   var Camera = (function() {
-    var MAX_X_ACC = 0.25,
-        MAX_X_VEL = 5.5;
+    var MAX_X_ACC = 0.5,
+        MAX_X_VEL = 6;
 
     var cx = 0,
         dx = 0,
@@ -287,7 +287,6 @@ var Test2 = (function(WIDTH, HEIGHT) {
       var facing = Player.direction ? -1 : 1;
 
       var tx = Player.x - (SCALED_WIDTH / 2) + ((SCALED_WIDTH / 10) * facing);
-      console.log(tx, cx);
 
       dx2 = cx - tx >= 0 ? -MAX_X_ACC : MAX_X_ACC;
 
@@ -299,12 +298,12 @@ var Test2 = (function(WIDTH, HEIGHT) {
         dx = -MAX_X_VEL;
       }
 
-      if (dx > 0 && Math.abs(cx - tx) < Math.abs(dx * 4)) {
+      if (dx > 0 && Math.abs(cx - tx) < Math.abs(dx * 5)) {
         dx2 = 0;
-        dx = Math.max(Player.dx * 1.15 , 1);
-      } else if (dx < 0 && Math.abs(cx - tx) < Math.abs(dx * 4)) {
+        dx = Math.max(Math.abs(cx - tx) / 5, Player.dx * 1.1, 1);
+      } else if (dx < 0 && Math.abs(cx - tx) < Math.abs(dx * 5)) {
         dx2 = 0;
-        dx = Math.min(Player.dx * 1.15, -1);
+        dx = Math.min(-Math.abs(cx - tx) / 5, Player.dx * 1.1, -1);
       }
 
       if (Math.abs(cx - tx) < Math.abs(dx)) {
