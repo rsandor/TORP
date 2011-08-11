@@ -1,21 +1,177 @@
 /* 
- * TORP - Test #4
+ * TORP - Test 4
+ * Bitmap Collision Detection
+ *
+ * Run in the project directory:
+ * python -m SimpleHTTPServer 8000
+ *
+ * Test via:
+ * http://localhost:8000/test4/
+ *
  */
 var Test2 = (function(WIDTH, HEIGHT) {
   // Sprite Maps
-  var blockSprites, playerSprites;
+  var blockSprites, playerSprites, hitmapImage;
   
   // Create the Gury instance
-  var g = $g().size(WIDTH, HEIGHT).background('black url(background.png) top left');
+  var g = $g().size(WIDTH, HEIGHT).background('black');
   
-  //g.canvas.style.width = 2*WIDTH + "px";
+  
+  
+  var Hitmap = (function() {
+    var image, canvas, ctx, map;
+    
+    function init(hmi) {
+      image = hmi;
+      
+      canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+
+      map = ctx.getImageData(0, 0, image.width, image.height);
+    }  
+    
+    
+    function hit(x, y, w, h) {
+      //x = Math.round(x);
+      //y = Math.round(y);
+      
+      for (var ix = x|0; ix < x + w; ix++)
+      for (var iy = y|0; iy < y + h; iy++) {
+        if (map.data[4*(image.width*iy+ix)|0] == 255)
+          return true;
+      }
+      return false;
+    }
+    
+    
+    function checkHit(player) {
+      var x = player.x,
+        y = player.y,
+        w = player.w,
+        h = player.h,
+        dx = player.dx,
+        dy = player.dy;
+      
+      
+      
+      
+      if ( hit(x + dx, y + dy, w, h) ) {
+      
+        var ndx = dx,
+            ndy = dy;
+        
+        console.log(ndx + ", " + ndy);
+        
+        
+        /*
+        for (var w = 0; w < 100; w++) {
+          ndy += (dy < 0) ? 1 : -1;
+          console.log(ndy);
+          if (!hit(x + dx, y + ndy, w, h)) {
+            console.log('we are out!');
+            player.y = y + Math.round(ndy);
+            player.dy = 0;
+            player.grounded = (dy > 0);
+            break;
+          }
+        } 
+        */ 
+        
+        
+        
+        // "Kinda" works
+        while (Math.abs(dy) > 0.1) {
+          dy *= .5;
+          if (!hit(x + dx, y + dy, w, h)) {
+            player.y = y + Math.round(dy);
+            player.dy = 0;
+            player.grounded = true;
+            break;
+          }
+        }
+        
+        
+        /*
+        while (Math.abs(dx) >= 1 && Math.abs(dy) >= 1) {
+          
+          dx += (dx > 0) ? -1 : 1;
+          dy += (dy > 0) ? -1 : 1;
+          
+          if (!hit(x + dx, y+dy, w, h)) {
+            console.log('holyshit');
+          }
+        }
+        */
+       
+        
+        
+      }
+      
+      /*
+      if ( hit(x + dx, y + dy, w, h) ) {
+        var ndx = (dx / 2)|0, 
+            ndy = (dy / 2)|0, 
+            k = 4,
+            iters = 40;
+        
+        while (iters > 0) {
+          iters--;
+          
+          console.log('fuuuck');
+          
+          var nx = x + ndx,
+              ny = y + ndy;
+          
+          if ( hit(nx, ny, w, h) ) {
+            ndx -= (dx / k) | 0;
+            ndy -= (dy / k) | 0;
+          }
+          else {
+            ndx += (dx / k) | 0;
+            ndy += (dy / k) | 0;
+            
+            if (ndx <= 1 || ndy <= 1) {
+              player.x = nx;
+              player.y = ny;
+              
+              player.dx = 0;
+              player.dy = 0;
+              player.grounded = true;
+            }
+            
+          }
+          
+          k *= 2;
+        }
+  
+    
+      }
+      */
+      
+      return false;
+    }
+    
+    return {
+      draw: function(ctx) {
+        ctx.drawImage(image, 0, 0);
+      },
+      init: init,
+      hit: checkHit
+    };
+  })();
+  
+  
   
   /**
    * The player model
    */
   var Player = {
     // Position
-    x: 24, y: -20,
+    x: 48, y: 192,
     dx: 0, dy: 0,
     dx2: 0, dy2: 0,
     
@@ -160,6 +316,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       return (hitX && hitY) || (hitX && surroundY) || (surroundX && hitY);
     }
     
+    
     /**
      * Handle user input and horizontal character movement.
      */
@@ -235,7 +392,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
       // Assume the player is flailing trough the air
       Player.grounded = false;
       
-      // Check for collisions
+      // Check for platform collisions
       g.each('platform', function(platform) {
         var hit = collision(Player, platform);
         //platform.hit = hit;
@@ -261,6 +418,12 @@ var Test2 = (function(WIDTH, HEIGHT) {
         }
       });
       
+      
+      // Check for hitmap collisions
+      if (Hitmap.hit(Player)) {
+        console.log('hit');
+      }
+      
       // Update Player's Position
       Player.x += Player.dx;  
       Player.y += Player.dy;
@@ -277,14 +440,19 @@ var Test2 = (function(WIDTH, HEIGHT) {
   function init(maps) {
     playerSprites = maps['player.png'];
     blockSprites = maps['blocks.png'];
+    hitmapImage = maps['test_hitmap.png'];
+    
+    // initalize the hitmap
+    Hitmap.init(hitmapImage);
     
     // Add some background pillars
+    
+    /*
     g.add('background', new Background(272, 48, 32, 106));
     g.add('background', new Background(176, 176, 128, 32));
     g.add('background', new Background(80, 106, 64, 106));
     
-    // Add the player
-    g.add('player', Player);
+    
     
     // Add some platforms and backgrounds
     g.add('platform', new Platform(160, 160, 160, 16));
@@ -292,8 +460,14 @@ var Test2 = (function(WIDTH, HEIGHT) {
     g.add('platform', new Platform(256, 32, 64, 16));
     
     g.add('platform', new Platform(272, 96, 32, 47));
+    */
     
+    
+    g.add('hitmap', Hitmap);
+    g.add('player', Player);
     g.add('platform', new Platform(0, 240-32, 400, 16));
+      
+      
         
     // Physics Magic
     g.add('physics', Physics);
@@ -314,7 +488,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
   }
   
   // Load spritemap and begin the game
-  Torp.loadImages(['player.png', 'blocks.png'], init);
-})(1200, 660);
+  Torp.loadImages(['test_hitmap.png', 'player.png', 'blocks.png'], init);
+})(1200, 672);
 
 
