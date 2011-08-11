@@ -274,7 +274,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
   })();
 
   var Camera = (function() {
-    var MAX_X_ACC = 0.35,
+    var MAX_X_ACC = 0.3,
         MAX_X_VEL = 4.5;
 
     var cx = 0,
