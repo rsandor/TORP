@@ -274,8 +274,8 @@ var Test2 = (function(WIDTH, HEIGHT) {
   })();
 
   var Camera = (function() {
-    var MAX_X_ACC = 0.5,
-        MAX_X_VEL = 6;
+    var MAX_X_ACC = 0.35,
+        MAX_X_VEL = 4.5;
 
     var cx = 0,
         dx = 0,
@@ -298,12 +298,12 @@ var Test2 = (function(WIDTH, HEIGHT) {
         dx = -MAX_X_VEL;
       }
 
-      if (dx > 0 && Math.abs(cx - tx) < Math.abs(dx * 5)) {
+      if (dx > 0 && Math.abs(cx - tx) < Math.abs(dx * 7)) {
         dx2 = 0;
-        dx = Math.max(Math.abs(cx - tx) / 5, Player.dx * 1.1, 1);
-      } else if (dx < 0 && Math.abs(cx - tx) < Math.abs(dx * 5)) {
+        dx = Math.max(Math.abs(cx - tx) / 7, Player.dx * 1.1, 1);
+      } else if (dx < 0 && Math.abs(cx - tx) < Math.abs(dx * 7)) {
         dx2 = 0;
-        dx = Math.min(-Math.abs(cx - tx) / 5, Player.dx * 1.1, -1);
+        dx = Math.min(-Math.abs(cx - tx) / 7, Player.dx * 1.1, -1);
       }
 
       if (Math.abs(cx - tx) < Math.abs(dx)) {
