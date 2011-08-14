@@ -274,14 +274,20 @@ var Test2 = (function(WIDTH, HEIGHT) {
   })();
 
   var Camera = (function() {
-    var MAX_X_ACC = 0.3,
-        MAX_X_VEL = 4.5;
+    var MAX_X_ACC = 0.25,
+        MAX_X_VEL = 4.25,
+        MAX_Y_ACC = 0.25,
+        MAX_Y_VEL = 4.5;
 
     var cx = 0,
+        cy = 0,
         dx = 0,
-        dx2 = 0;
+        dx2 = 0,
+        dy = 0,
+        dy2 = 0;
 
-    var SCALED_WIDTH = WIDTH / 3;
+    var SCALED_WIDTH = WIDTH / 3,
+        SCALED_HEIGHT = HEIGHT / 3;
 
     function up(ctx) {
       var facing = Player.direction ? -1 : 1;
@@ -312,9 +318,28 @@ var Test2 = (function(WIDTH, HEIGHT) {
       }
 
       cx += dx;
+      
+      
+      
+      var ty = Player.y - (SCALED_HEIGHT / 2);
+      dy2 = MAX_Y_ACC * (cy < ty) ? 1 : -1;
+
+      
+      dy += dy2;
+      if (dy > MAX_Y_VEL)
+        dy = MAX_Y_VEL;
+      else if (dy < -MAX_Y_VEL)
+        dy = -MAX_Y_VEL;
+      
+      if (Math.abs(cy - ty) <= MAX_Y_VEL) {
+        dy2 = 0;
+        dy = Player.dy;
+      }
+      
+      cy += dy;
 
       ctx.save();
-      ctx.translate(-cx, 0);
+      ctx.translate(-cx, -cy);
     }
 
     function down(ctx) {
