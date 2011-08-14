@@ -64,7 +64,7 @@ var Test2 = (function(WIDTH, HEIGHT) {
         var ndx = dx,
             ndy = dy;
         
-        console.log(ndx + ", " + ndy);
+        //console.log(ndx + ", " + ndy);
         
         
         /*
@@ -84,11 +84,19 @@ var Test2 = (function(WIDTH, HEIGHT) {
         
         
         // "Kinda" works
-        while (Math.abs(dy) > 0.1) {
-          dy *= .5;
+        while (Math.abs(dy) > 0 || Math.abs(dx) > 0) {
+          dy /= 2;
+          if (Math.abs(dy) < 1)
+            dy = 0;
+          dx /= 2;
+          if (Math.abs(dx) < 1)
+            dx = 0;
+          //dy -= dy > 0 ? Math.min(0.5, dy) : Math.max(-0.5, dy);
           if (!hit(x + dx, y + dy, w, h)) {
-            player.y = y + Math.round(dy);
+            player.y = y + dy;
+            player.x = x + dx;
             player.dy = 0;
+            player.dx = 0;
             player.grounded = true;
             break;
           }
